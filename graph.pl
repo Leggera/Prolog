@@ -32,24 +32,19 @@ edges2([[_,X|L]|P], V):-!,edges2(X, V1), edges2([[_|L]], V2), edges2(P, V3), app
 edges2(X, [[X|V]]):-findall(X1, edge(X, X1, _), V),!.
 sh_path([] ,_, []).
 sh_path(X, Y, [X, Y]):-edge(X, Y, _), !.
-sh_path(X, Y, P):-edges2(X, V),print(X),print(V),((members(Y, V, Ex), Ex \= [],find(Ex, X, S), P = [S, Ex, Y]) ;(sh_path(V, Y, [B|L]),((find(B,X,S),P = [S,B|L],!);P=[B|L]/*split([B|L], P)*/))).
+sh_path(X, Y, P):-edges2(X, V),print(X),print(V),((members(Y, V, Ex), Ex \= [],find(Ex, X, S), P = [S, Ex]) ;(sh_path(V, Y, [B|L]),((find(B,X,S),P = [S,B|L],!);print([B|L]), print("Split"),split([B|L], P), print([B|L])))).
 
-/*find(R, [[X|T]|L],S):-print("R"),print(R),print(X),print(T),print(L),(print(R),print(X),print(T),member(R, T), S is X,print(S),!);find(R, [L], S).*/
-split([[X, Y], Z|T], [[X|L1],[Y|L2]]):-print("Here"),print(X), print(Y),!,split([Z|T],[L1, L2]),print("Iver"), print(L1), print(L2),!.
-
-split(X, [X, X]):-print("Over"), print(X).
+split2([[X|T]|L], [X|R], S):- split2(L, R, V), append([T], V, S).
+split2([],[],[]).
+split(L,[P|R]):-split2(L, P, S), split(S, R), !.
+split(_,[]).
 find([],_,[]):-!.
 find([H|T], V, [X|L]):-!,find(H, V, X), find(T, V, L).
 find(R,[[X|T]|_], X):-member(R,T),!.
 find(R,[[_|_]|L], S):-find(R,L,S),!.
 members(_, [],[]).
-members(Y, [[X|V1]|_], X):-member(Y, V1)/*, members(Y, V, Ex), !*/.
+members(Y, [[X|V1]|V], [X|Ex]):-member(Y, V1), members(Y, V, Ex), !.
 members(Y, [[_|_]|V], Ex):-members(Y, V, Ex).
-/*members(Y, [X|V1], [X]):-member(Y, V1).*/
-
-edges3([],[]):-!.
-edges3([X|T], P):-!,findall(X1, edge(X, X1, _),V), edges3(T, L), append([[X|[V]]], L,P).
-edges3(X, V):-findall(X1, edge(X, X1, _), V).
 
 
 

@@ -32,7 +32,7 @@ edges2([[_,X|L]|P], V):-!,edges2(X, V1), edges2([[_|L]], V2), edges2(P, V3), app
 edges2(X, [[X|V]]):-findall(X1, edge(X, X1, _), V),!.
 sh_path([] ,_, []).
 sh_path(X, Y, [X, Y]):-edge(X, Y, _), !.
-sh_path(X, Y, P):-edges2(X, V),print(X),print(V),((members(Y, V, Ex), Ex \= [],find(Ex, X, S), P = [S, Ex]) ;(sh_path(V, Y, [B|L]),((find(B,X,S),P = [S,B|L],!);print([B|L]), print("Split"),split([B|L], P), print([B|L])))).
+sh_path(X, Y, P):-edges2(X, V),((members(Y, V, Ex), Ex \= [],find(Ex, X, S), P = [S, Ex], !) ;(sh_path(V, Y, [B|L]),((find(B,X,S),P = [S,B|L],!);split(L, P)))).
 
 split2([[X|T]|L], [X|R], S):- split2(L, R, V), append([T], V, S).
 split2([],[],[]).

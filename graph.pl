@@ -1,11 +1,18 @@
 edge1(a, b, 1).
-edge1(a, f, 8).
-edge1(f, d, 7).
+/*edge1(a, f, 8).*/
+edge1(d, f, 7).
 edge1(a, c, 3).
 edge1(c, d, 3).
-edge1(d, m, 4).
+/*edge1(d, a, 4).*/
+edge1(f, c, 9).
 
 edge(X, Y, N):-edge1(X, Y, N);edge1(Y, X, N).
+edge2(X, Y, N):-edge1(Y, X, N).
+
+cycle(X, Y, P):-cycle5(X, Y, [], P);cycle5(Y, X, [], P).
+cycle5(X, X, [], []).
+cycle5(X, Y, _,  [X, Y]):-edge1(X, Y, _).
+cycle5(X, Y, L, [X|P]):-edge1(X, X1, _),(X1=Y,print(X1), print(L), break), cycle5(X1, Y,[X|L], P)/*, print(X1), print(X), print(P)*/,member(X, P).
 
 min_path(X, Y, N1, P1):-findall([N, P], path(X, Y, N, P),  ALL_P), shortest(N1, P1, ALL_P), !.
 shortest(X1, Y1, [[X1|Y1]]).
@@ -49,12 +56,17 @@ members(Y, [[_|_]|V], Ex):-members(Y, V, Ex).
 
 
 
+cyclic(X):-edge(X, X1,_), path1(X, X1,_),!.
+path1(X, Y, P):-path4(X, Y, X, Y, [], P).
+path4(X, X, _, _, [], []).
+path4(X, Y, B, E,_, [X, Y]):-edge(X, Y, _), (dif(X, B);dif(Y, E)).
+path4(X, Y, B, E, L, [X|P]):-edge(X, X1, _), not(member(X1, L)), path4(X1, Y, B, E,[X|L], P), not(member(X, P)).
 
 
+vertices(S):-findall([X, Y], edge(X, Y, _), V1), flatten(V1, V), setof(V, S).
 
-
-
-
+is_connected:-vertices(V), member(X, V), member(Y, V), dif(X, Y), edge(X, Y), fail.
+is_connected.
 
 
 

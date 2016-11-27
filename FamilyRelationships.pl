@@ -49,3 +49,15 @@ sister_in_law(X, Y):-brother(X, Z), spouse_(Z, Y).
 great_grandmother(X, Y):- grandmother(X, Z), mother(Z, Y).
 great_grandfather(X, Y):- grandfather(X, Z), father(Z, Y).
 cousin(X, Y):-(uncle(X, Z);aunt(X, Z)), child(Z, Y).
+
+
+one_word_relation(X, Y):-(parent(X, Y), print("parent"), !);(spouse_(X, Y), print("spouse"), !);(child(X, Y), print("child"), !);(grandparent(X, Y), print("grandparent"), !);(grandchild(X, Y), print("grandchild"), !);(brother(X, Y), print("brother"), !);(sister(X, Y), print("sister"), !);(uncle(X, Y), uncle("brother"), !);(aunt(X, Y), print("aunt"), !);(daughter_in_law(X, Y), print("dauhgter-in-law"), !);(son_in_law(X, Y), print("son-in-law"), !);(brother_in_law(X, Y), print("brother-in-law"), !);(sister_in_law(X, Y), print("sister-in-law"), !);(great_grandmother(X, Y), print("great grandmother"), !);(great_grandfather(X, Y), print("great grandfather"), !);(cousin(X, Y), print("cousin"), !).
+
+relation(X, Y):-(one_word_relation(X, Y), !);(one_word_relation(X, Z), relation(Z, Y), !).
+
+
+
+
+
+
+

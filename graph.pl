@@ -1,25 +1,38 @@
-edge1(a, b, 1).
+/**edge1(a, b, 1).**/
 /*edge1(d, f, 7).*/
-edge1(a, c, 3).
+/**edge1(a, c, 3).
 edge1(a, f, 2).
 edge1(f, m, 2).
 edge1(c, m, 1).
-edge1(m, d, 3).
+edge1(m, d, 3).**/
 /*edge1(d, a, 4).*/
-edge1(f, c, 9).
+/**edge1(f, c, 9).**/
 /*edge1(l, p, 8).*/
+
+edge1(a,b,4).
+edge1(a,d,4).
+edge1(a,e,1).
+edge1(b,e,3).
+edge1(d,e,3).
+edge1(c,e,2).
+edge1(b,c,1).
+edge1(d,c,1).
+edge1(b,f,15).
+edge1(d,f,7).
 
 edge(X, Y, N):-edge1(X, Y, N);edge1(Y, X, N).
 
-min_path(X, Y, N1, P1):-findall([N, P], path(X, Y, N, P),  ALL_P), shortest(N1, P1, ALL_P).
+min_path(X, Y, N1, P1):-setof([N, P], path(X, Y, N, P),  ALL_P), shortest(N1, P1, ALL_P).
 /*shortest(X1, Y1, [[X1|Y1]]).
 shortest(N, P, [[X1|Y1], [X2|_]| PS]):-X1<X2,!, shortest(N, P, [[X1|Y1]| PS]).
 shortest(N, P, [[X1|Y1], [X2|Y2]| PS]):-X1=X2,!, shortest(N, P, [[X1|[Y1, Y2]]| PS]).
 shortest(N, P, [[_|_], [X2|Y2]| PS]):- shortest(N, P, [[X2|Y2]| PS]).*/
-shortest(X1, Y1, [[X1,Y1|_]]).
-shortest(N, P, [[X1|Y1], [X2|_]| PS]):-X1<X2,!, shortest(N, P, [[X1|Y1]| PS]).
+
+
+shortest(N, P, [[X1|Y1], [X2|_]| PS]):-X1<X2, !, shortest(N, P, [[X1|Y1]| PS]).
 shortest(N, P, [[X1|Y1], [X2|_]| PS]):-X1=X2, shortest(N, P, [[X1|Y1]| PS]).
-shortest(N, P, [[_|_], [X2|Y2]| PS]):- shortest(N, P, [[X2|Y2]| PS]).
+shortest(N, P, [[_|_], [X2|Y2]| PS]):- shortest(N, P, [[X2|Y2]| PS]), !.
+shortest(X1, Y1, [[X1,Y1|_]]).
 
 path(X, Y, N, P):-path5(X, Y, [], N, P). /* works with oooi, ooio, ooii, iooi,oioi, iiio, iioi, iiii, oooo, iooo, oioo, iioo, ioio, oiio, ioii, oiii*/
 path5(X, X, [], 0, []).

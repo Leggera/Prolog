@@ -1,4 +1,4 @@
-/**edge1(a, b, 1).**/
+/*edge1(a, b, 1).*/
 /*edge1(d, f, 7).*/
 /**edge1(a, c, 3).
 edge1(a, f, 2).
@@ -42,7 +42,8 @@ path5(X, Y, L, N, [X|P]):-edge(X, X1, N1), not(member(X1, L)), dif(Y, X1), path5
 edges2([], []):-!.
 edges2([[_]], []):-!.
 edges2([[_,X|L]|P], S):-!,edges2(X, V1), edges2([[_|L]], V2), edges2(P, V3), append(V1,V2,T),append(T, V3, V),list_to_set(V, S).
-edges2(X, [[X|V]]):-findall(X1, edge(X, X1, _), V1), list_to_set(V1, V),!.
+edges2(X, [[X|V]]):-findall(X1, edge(X, X1, _), V1), list_to_set(V1,
+V),!.
 
 cyclic:-cyclic(_).
 cyclic(X):-edge(X, X1,_), path1(X, X1,_),!.
@@ -58,18 +59,13 @@ is_connected([X, Y|T]):-path(X, Y, _, _), is_connected([X|T]), !.
 is_connected([_]).
 
 members(Y, [[X|V1]|_], X):- member(Y, V1).
-members(Y, [[_|_]|V], Ex):-members(Y, V, Ex).
+members(Y, [[_|_]|V], Ex):- members(Y, V, Ex).
+short_p([] ,_, [], 0).
+short_p(X, Y, [X, Y], 1):-edge(X, Y, _), !.
+short_p(X, Y, [Ex, Y], 2):- edges2(X, V), members(Y, V, Ex).
+short_p(X, Y, [Ex, B|P], N):- edges2(X, V), short_p(V, Y, [B|P], N1), members(B, V, Ex), N is N1+1.
 
-short_path([] ,_, [], 0).
-short_path(X, Y, [X, Y], 1):-edge(X, Y, _), !.
-short_path(X, Y, [Ex, Y], 2):- edges2(X, V), members(Y, V, Ex), !.
-short_path(X, Y, [Ex, B|P], N):- edges2(X, V), short_path(V, Y, [B|P], N1), members(B, V, Ex), N is N1+1 .
-
-
-
-
-
-
+short_path(X, Y, P, N):-short_p(X, Y, _, N1), !, short_p(X, Y, P, N), (((N > N1), !, fail);(N = N1)).
 
 
 

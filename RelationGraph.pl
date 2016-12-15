@@ -35,7 +35,7 @@ spouse(harry, jane).
 edge(X, Y, 1):-parent(X, Y);child(X, Y);spouse(X, Y); brother(X, Y); sister(X, Y); cousin(X, Y); grandparent(X, Y); grandchild(X, Y); uncle(X, Y); aunt(X, Y);daughter_in_law(X, Y);brother_in_law(X, Y);great_grandmother(X, Y); great_grandfather(X, Y).
 
 child(Y, X) :- parent(X, Y).
-spouse_(X, Y):-spouse(X, Y), !;spouse(Y, X).
+spouse_(X, Y):-(spouse(X, Y), !;spouse(Y, X)), male(X), female(Y).
 mother(X, Y):-parent(X, Y), female(Y).
 father(X, Y):-parent(X, Y), male(Y).
 daughter(Y, X):- child(Y, X), female(X).
@@ -99,6 +99,13 @@ interface:-write("Hello!"), nl, repeat, write("Here is the list of what you can 
 relations:-write("You can ask about existing relationship in format relation_name(person_name, Y) or relation_name(X, person_name) to learn about people who relate to this person by this relaiton"), nl, write("OR"), nl, write("You can check in what way two people relate in format relation(person_name1, person_name2)"), nl, write("or you can go back to the main menu by pressing 3"), repeat, read(X), (X = end_of_file, seen, !;X=3, break; X = relation(X, Y), relationship(X, Y); call(X)), fail.
 assertions:-see(user), repeat, read(X), (X = end_of_file, seen, !;process(X), fail).
 
-conflict(X):-print(X), (X = male(Y), female(Y), !);(X = female(Y), male(Y), !).
-process((X, T)):-!, print("B"), process(X), process(T), assert(X), !.
-process(X):-print("A"), compound(X), ground(X), (predicate_property(X, dynamic), not(conflict(X)),print("No conflict"),!; clause(X, Clauses), (X \= Clauses, process(Clauses); X = Clauses)).
+conflict(X):-((X = male(Y), female(Y), !);(X = female(Y), male(Y), !)).
+process((X, T)):-!, process(X), process(T), assert(X), !.
+process(X):-(predicate_property(X, dynamic), (not(conflict(X)), !; !, fail));not(compound(X));(X = (Cl1;Cl2), (process(Cl1);process(Cl2))); (clause(X, Clauses), ((X \= Clauses, process(Clauses)); (X = Clauses, !, fail))).
+
+/* process(X):-not(compound(X)), !;
+(X = (Cl1;Cl2),
+	process(Cl1),process(Cl2));
+ground(X), (predicate_property(X, dynamic), not(conflict(X)),!;
+	   (clause(X, Clauses), (X \= Clauses, process(Clauses); X = Clauses))). */
+

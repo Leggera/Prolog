@@ -1,3 +1,8 @@
+:- dynamic parent/2.
+:- dynamic male/1.
+:- dynamic female/1.
+:- dynamic spouse/2.
+
 parent(ann, jack).
 parent(lucy, jack).
 parent(sue, jack).
@@ -30,7 +35,7 @@ spouse(harry, jane).
 edge(X, Y, 1):-parent(X, Y);child(X, Y);spouse(X, Y); brother(X, Y); sister(X, Y); cousin(X, Y); grandparent(X, Y); grandchild(X, Y); uncle(X, Y); aunt(X, Y);daughter_in_law(X, Y);brother_in_law(X, Y);great_grandmother(X, Y); great_grandfather(X, Y).
 
 child(Y, X) :- parent(X, Y).
-spouse_(X, Y):-spouse(X, Y);spouse(Y, X).
+spouse_(X, Y):-spouse(X, Y), !;spouse(Y, X).
 mother(X, Y):-parent(X, Y), female(Y).
 father(X, Y):-parent(X, Y), male(Y).
 daughter(Y, X):- child(Y, X), female(X).
@@ -80,3 +85,20 @@ relationship(X, Y):-short_path(X, Y, P, _), rel(P), !.
 rel([_]).
 rel([X, Y|T]):- one_word_relation(X, Y, Name), rel([Y|T]), (((T \= []), write(" of a "), !);(T = [])), write(Name).
 
+int:-  see(user), repeat, /*print_options*/ read(X), (X = end_of_file, seen, !;process(X), fail).
+
+/* process(X):- (conflict(X), write("No"), !;complex(X)). */
+
+
+
+complex([X|T]):-complex(X), complex(T), !.
+complex(X):-(predicate_property(X, dynamic), assert(X), !; print(X), clause(X, (Cl1, Cl2)), complex(Cl1), complex(Cl2)).
+
+interface:-write("Hello!"), nl, repeat, write("Here is the list of what you can do"), nl, write("Press 1. to ask about family relations"), nl, write("Press 2. to insert new information"), nl, write("Press 3. to exit"), nl, see(user), repeat, read(X), (X = end_of_file, seen, !; ((X = 1, relations; X = 2, assertions; X = 3, break), fail)).
+
+relations:-write("You can ask about existing relationship in format relation_name(person_name, Y) or relation_name(X, person_name) to learn about people who relate to this person by this relaiton"), nl, write("OR"), nl, write("You can check in what way two people relate in format relation(person_name1, person_name2)"), nl, write("or you can go back to the main menu by pressing 3"), repeat, read(X), (X = end_of_file, seen, !;X=3, break; X = relation(X, Y), relationship(X, Y); call(X)), fail.
+assertions:-see(user), repeat, read(X), (X = end_of_file, seen, !;process(X), fail).
+
+conflict(X):-print(X), (X = male(Y), female(Y), !);(X = female(Y), male(Y), !).
+process((X, T)):-!, print("B"), process(X), process(T), assert(X), !.
+process(X):-print("A"), compound(X), ground(X), (predicate_property(X, dynamic), not(conflict(X)),print("No conflict"),!; clause(X, Clauses), (X \= Clauses, process(Clauses); X = Clauses)).

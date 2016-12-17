@@ -90,14 +90,41 @@ int:-  see(user), repeat, /*print_options*/ read(X), (X = end_of_file, seen, !;p
 complex([X|T]):-complex(X), complex(T), !.
 complex(X):-(predicate_property(X, dynamic), assert(X), !; print(X), clause(X, (Cl1, Cl2)), complex(Cl1), complex(Cl2)).
 
-interface:-write("Hello!"), nl, repeat, write("Here is the list of what you can do"), nl, write("Press 1. to ask about family relations"), nl, write("Press 2. to insert new information"), nl, write("Press 3. to exit"), nl, see(user), read(X), (X = end_of_file, seen, !; (print(X), (X = 1, relations; X = 2, assertions; X = 3, break), !, fail)).
+interface:-write("Hello!"), nl, repeat, write("Here is the list of what you can do"), nl, write("Press 1. to ask about family relations"), nl, write("Press 2. to insert new information"), nl, write("Press 3. to exit"), nl, see(user), read(X), (X = end_of_file, seen, !; (print(X), (X = 1, relations; X = 2, assertions; X = 3, !, fail), !, fail)).
 
-relations:-write("You can ask about existing relationship in format relation_name(person_name, Y) or relation_name(X, person_name) to learn about people who relate to this person by this relaiton"), nl, write("OR"), nl, write("You can check in what way two people relate in format relation(person_name1, person_name2)"), nl, write("or you can go back to the main menu by pressing 3."), nl, repeat, read(X), (X = end_of_file, seen, !;X=3, !, fail; X = relation(X, Y), relationship(X, Y); call(X)), fail.
-assertions:-see(user), repeat, read(X), (X = end_of_file, seen, !;X = 3, !, fail;process(X), fail).
+relations:-write("You can ask about existing relationship in format relation_name(person_name, Y) or relation_name(X, person_name) to learn about people who relate to this person by this relaiton"), nl, write("OR"), nl, write("You can check in what way two people relate in format relation(person_name1, person_name2)"), nl, write("or you can go back to the main menu by pressing 3."), nl, repeat, read(X), (X = end_of_file, seen, !;X=3, !, fail; X = 2; X = 1), fail.
+assertions:-see(user), repeat, write('write "child" to insert new child'), nl, write('write "spouse" to insert new spouse'), nl, read(X), (X = end_of_file, seen, !;X = 3, !, fail;(X = child, process_child; X = spouse, process_spouse), fail).
 
 conflict(X):-((X = male(Y), female(Y), !);(X = female(Y), male(Y), !)).
 process((X, T)):-!, process(X), process(T), !.
-process(X):-
+process_child:-
+	write("Enter the name of the child"), nl,
+	read(Name), nl,
+	(not(one_word_relation(Name, _, _)),
+	 write("Enter the sex of the child (m or f)"), !
+	; write("Name already is in the data base"), nl, !, fail), nl,
+	read(Sex),(Sex = f, assert(female(Name));Sex = m, assert(male(Name))), nl,
+	write("Enter the parent of the child"), nl,
+	read(Parent),(one_word_relation(Parent, _, _), !
+	; write("Enter sex of "), write(Parent), write(" (m or f)"), nl,
+	read(Parent_sex), (Parent_sex = f, assert(female(Parent)); Parent_sex = m,        assert(male(Parent)))), assert(parent(Name, Parent)).
+process_spouse:-
+	write("Enter the name of a new spouse"), nl,
+	read(Name1), nl,
+	(not(one_word_relation(Name1, _, _)),
+	 write("Enter the name of a existing spouse"), !
+	; write("Name already is in the data base"), nl, !, fail), nl,
+	read(Name2), nl,
+	(female(Name2), assert(male(Name1)), !
+	; male(Name2), assert(female(Name1)), !
+	; write("Error: The sex of the second spouse is unknown"), nl, fail),
+	assert(spouse(Name1, Name2)).
+
+
+
+
+
+/*
 	(ground(X), !;(!, write("Error: Intermidiate relatives have not yet been declared"),nl)),
 	((predicate_property(X, dynamic),(not(conflict(X)), (X, !;assert(X), write(X), nl, !); write("Error: Sex conflict"), nl, !), !);
 	not(compound(X));
@@ -105,6 +132,8 @@ process(X):-
 	(X = (Cl1;Cl2), (process(Cl1), !;process(Cl2), !), !);
 	(clause(X, Clauses), ((X \= Clauses, process(Clauses)), !;
 	(X = Clauses, write("Error: Couldn't expand clause to the basic ones"), nl, !)))).
-
+*/
 skipped(X):- X = dif(_, _).
+
+
 

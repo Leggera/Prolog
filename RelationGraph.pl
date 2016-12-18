@@ -32,10 +32,24 @@ female(jane).
 spouse(andrew, lucy).
 spouse(harry, jane).
 
-edge(X, Y, 1):-parent(X, Y);child(X, Y);spouse(X, Y); brother(X, Y); sister(X, Y); cousin(X, Y); grandparent(X, Y); grandchild(X, Y); uncle(X, Y); aunt(X, Y);daughter_in_law(X, Y);brother_in_law(X, Y);great_grandmother(X, Y); great_grandfather(X, Y).
+edge(X, Y, 1):-
+	parent(X, Y);
+	child(X, Y);
+	spouse(X, Y);
+	brother(X, Y);
+	sister(X, Y);
+	cousin(X, Y);
+	grandparent(X, Y);
+	grandchild(X, Y);
+	uncle(X, Y);
+	aunt(X, Y);
+	daughter_in_law(X, Y);
+	brother_in_law(X, Y);
+	great_grandmother(X, Y);
+	great_grandfather(X, Y).
 
 child(Y, X) :- parent(X, Y).
-spouse_(X, Y):-(spouse(X, Y), !;spouse(Y, X)), male(X), female(Y).
+spouse_(X, Y):-(spouse(X, Y), !;spouse(Y, X)).
 mother(X, Y):-parent(X, Y), female(Y).
 father(X, Y):-parent(X, Y), male(Y).
 daughter(Y, X):- child(Y, X), female(X).
@@ -49,19 +63,31 @@ grandson(Y, X):-grandchild(Y, X), male(X).
 brother(X, Y):-parent(X, Z), parent(Y, Z), male(Y), dif(X, Y). /* при наличии обоих родителей выдвет два одинаковых ответа*/
 sister(X, Y):-parent(X, Z), parent(Y, Z), female(Y), dif(X, Y). /* при наличии обоих родителей выдвет два одинаковых ответа*/
 
-
-/* мужья дядь и теть не считаются тетями и дядями */
 uncle(X, Y):-parent(X, Z), brother(Z, Y).
+/*uncle(X, Y):-aunt(X, Z), spouse_(Y, Z).*/
 aunt(X, Y):-parent(X, Z), sister(Z, Y).
-/* в обратную сторону будет просто родитель супруга */
-daughter_in_law(X, Y):-son(X, Z), spouse_(Z, Y). /*невестка*/
-son_in_law(X, Y):-daughter(X, Z), spouse_(Z, Y). /*зять*/
-/* в обратную сторону будет просто брат/сестра супруга */
-brother_in_law(X, Y):-sister(X, Z), spouse_(Z, Y).
-sister_in_law(X, Y):-brother(X, Z), spouse_(Z, Y).
-great_grandmother(X, Y):- grandmother(X, Z), mother(Z, Y).
-great_grandfather(X, Y):- grandfather(X, Z), father(Z, Y).
-cousin(X, Y):- (uncle(X, Z);aunt(X, Z)), child(Z, Y).
+/*aunt(X, Y):-uncle(X, Z), spouse_(Y, Z).*/
+
+
+
+shurin(X, Y):-male(Y), sister(Y, Z), spouse_(Z, X). /*шурин (брат жены)*/
+zolovka(X, Y):-female(Y), brother(Y, Z), spouse_(Z, X). /*золовка (сестра мужа)*/
+dever(X, Y):-male(Y), brother(Y, Z), spouse_(Z, X).
+svoyachenitsa(X, Y):-female(Y), sister(Y, Z), spouse_(Z, X).
+svecrov(X, Y):-female(X), spouse_(X, Z), mother(Z, Y).
+svecor(X, Y):-female(X), spouse_(X, Z), father(Z, Y).
+test(X, Y):-male(X), spouse_(X, Z), father(Z, Y).
+tesha(X, Y):-male(X), spouse_(X, Z), mother(Z, Y).
+nevestka(X, Y):-zolovka(Y, X); dever(Y, X); svecrov(Y, X).
+snokha(X, Y):-male(Y), son(Y, Z), spouse_(Z, X).
+zyat(X, Y):-shurin(Y, X); svoyachenitsa(Y, X); test(Y, X); tesha(Y, X).
+svaha(X, Y):-mother(Z, X), mother(W, Y), spouse_(Z, W).
+svat(X, Y):-father(Z, X), father(W, Y), spouse_(Z, W).
+
+
+great_grandmother(X, Y):- grandparent(X, Z), mother(Z, Y).
+great_grandfather(X, Y):- grandparent(X, Z), father(Z, Y).
+cousin(X, Y):- (uncle(X, Z), child(Z, Y), !;aunt(X, Z), child(Z, Y)).
 
 
 
@@ -79,24 +105,77 @@ short_p(X, Y, [Ex, B|P], N):- edges2(X, V), short_p(V, Y, [B|P], N1), members(B,
 
 short_path(X, Y, P, N):-short_p(X, Y, _, N1), !, short_p(X, Y, P, N), (((N > N1), !, fail);(N = N1)).
 
-one_word_relation(X, Y, Name):-(cousin(X, Y), Name = "cousin");(great_grandmother(X, Y), Name = "great grandmother");(great_grandfather(X, Y), Name = "great grandfather");(grandparent(X, Y), Name = "grandparent");(grandchild(X, Y), Name = "grandchild");(daughter_in_law(X, Y), Name = "dauhgter-in-law");(son_in_law(X, Y), Name = "son-in-law");(brother_in_law(X, Y), Name = "brother-in-law");(sister_in_law(X, Y), Name = "sister-in-law");(uncle(X, Y), Name = "uncle");(aunt(X, Y), Name = "aunt");(brother(X, Y), Name = "brother");(sister(X, Y), Name = "sister");(parent(X, Y), Name = "parent");(spouse_(X, Y), Name = "spouse");(child(X, Y), Name = "child").
+one_word_relation(X, Y, Name):-
+	(Name = cousin, cousin(X, Y));
+	(Name = great_grandmother, great_grandmother(X, Y));
+	(Name = great_grandfather, great_grandfather(X, Y));
+	(Name = grandparent, grandparent(X, Y));
+	(Name = grandchild, grandchild(X, Y));
+	(Name = dauhgter-in-law, daughter_in_law(X, Y));
+	(Name = son-in-law, son_in_law(X, Y));
+	(Name = brother-in-law, brother_in_law(X, Y));
+	(Name = sister-in-law, sister_in_law(X, Y));
+	(Name = uncle, uncle(X, Y));
+	(Name = aunt, aunt(X, Y));
+	(Name = brother, brother(X, Y));
+	(Name = sister, sister(X, Y));
+	(Name = parent, parent(X, Y));
+	(Name = spouse, spouse_(X, Y));
+	(Name = child, child(X, Y)).
 
-relationship(X, Y):-short_path(X, Y, P, _), rel(P), !.
+relationship:-
+	read(X),
+	read(Y),
+	write(Y),
+	write(" is a "),
+	short_path(X, Y, P, _),
+	rel(P), !, /*rel prints relationships*/
+	write(" of "),
+	write(X), nl.
 rel([_]).
 rel([X, Y|T]):- one_word_relation(X, Y, Name), rel([Y|T]), (((T \= []), write(" of a "), !);(T = [])), write(Name).
 
-int:-  see(user), repeat, /*print_options*/ read(X), (X = end_of_file, seen, !;process(X), fail).
+find_relative:-
+	write("Enter relation_name from the list:"), nl,
+	print_relations_list,
+	read(Relation),
+	write("Enter existing name"),nl,
+	read(Name),
+	(one_word_relation(Name, Y, Relation),!, write(Y), nl, !;
+	write("Relation or person doesn't exist")).
 
-complex([X|T]):-complex(X), complex(T), !.
-complex(X):-(predicate_property(X, dynamic), assert(X), !; print(X), clause(X, (Cl1, Cl2)), complex(Cl1), complex(Cl2)).
+interface:-write("Hello!"), nl,
+	see(user),
+	repeat,
+	write("Here is the list of what you can do"), nl,
+	write("Press 1. to ask about family relations"), nl,
+	write("Press 2. to insert new information"), nl,
+	write("Press 3. to exit"), nl,
+	read(X),
+	(X = end_of_file, seen, !;
+	X = 1, relations;
+	X = 2, assertions;
+	X = 3, !, fail),  fail.
 
-interface:-write("Hello!"), nl, repeat, write("Here is the list of what you can do"), nl, write("Press 1. to ask about family relations"), nl, write("Press 2. to insert new information"), nl, write("Press 3. to exit"), nl, see(user), read(X), (X = end_of_file, seen, !; (print(X), (X = 1, relations; X = 2, assertions; X = 3, !, fail), !, fail)).
+relations:-write("Press 1. to ask about existing relationship."), nl,
+	   write("Press 2. to check in what way two people relate."), nl,
+	   write("Press 3. go back to the main menu."), nl,
+	   repeat,
+	   read(X),
+	   (X = end_of_file, seen, !
+	   ;X = 3, !
+	   ;X = 2, relationship
+	   ;X = 1, find_relative),
+	   fail.
+assertions:-
+	repeat,
+	write('write "child" to insert new child'), nl,
+	write('write "spouse" to insert new spouse'), nl,
+	read(X),
+	(X = end_of_file, seen, !;
+	X = 3, !, fail;
+	(X = child, process_child;X = spouse, process_spouse), fail).
 
-relations:-write("You can ask about existing relationship in format relation_name(person_name, Y) or relation_name(X, person_name) to learn about people who relate to this person by this relaiton"), nl, write("OR"), nl, write("You can check in what way two people relate in format relation(person_name1, person_name2)"), nl, write("or you can go back to the main menu by pressing 3."), nl, repeat, read(X), (X = end_of_file, seen, !;X=3, !, fail; X = 2; X = 1), fail.
-assertions:-see(user), repeat, write('write "child" to insert new child'), nl, write('write "spouse" to insert new spouse'), nl, read(X), (X = end_of_file, seen, !;X = 3, !, fail;(X = child, process_child; X = spouse, process_spouse), fail).
-
-conflict(X):-((X = male(Y), female(Y), !);(X = female(Y), male(Y), !)).
-process((X, T)):-!, process(X), process(T), !.
 process_child:-
 	write("Enter the name of the child"), nl,
 	read(Name), nl,
@@ -108,32 +187,37 @@ process_child:-
 	read(Parent),(one_word_relation(Parent, _, _), !
 	; write("Enter sex of "), write(Parent), write(" (m or f)"), nl,
 	read(Parent_sex), (Parent_sex = f, assert(female(Parent)); Parent_sex = m,        assert(male(Parent)))), assert(parent(Name, Parent)).
+
 process_spouse:-
 	write("Enter the name of a new spouse"), nl,
 	read(Name1), nl,
 	(not(one_word_relation(Name1, _, _)),
-	 write("Enter the name of a existing spouse"), !
+	 write("Enter the name of an existing spouse"), !
 	; write("Name already is in the data base"), nl, !, fail), nl,
 	read(Name2), nl,
-	(female(Name2), assert(male(Name1)), !
+	(   (spouse_(Name2, Someone), write("Error: "),
+	     write(Name2), write(" is already married to "), write(Someone), nl,
+	    !, fail);
+	(   (female(Name2), assert(male(Name1)), !
 	; male(Name2), assert(female(Name1)), !
 	; write("Error: The sex of the second spouse is unknown"), nl, fail),
-	assert(spouse(Name1, Name2)).
+	write("OK"), nl, assert(spouse(Name1, Name2)))).
 
 
-
-
-
-/*
-	(ground(X), !;(!, write("Error: Intermidiate relatives have not yet been declared"),nl)),
-	((predicate_property(X, dynamic),(not(conflict(X)), (X, !;assert(X), write(X), nl, !); write("Error: Sex conflict"), nl, !), !);
-	not(compound(X));
-	skipped(X);
-	(X = (Cl1;Cl2), (process(Cl1), !;process(Cl2), !), !);
-	(clause(X, Clauses), ((X \= Clauses, process(Clauses)), !;
-	(X = Clauses, write("Error: Couldn't expand clause to the basic ones"), nl, !)))).
-*/
-skipped(X):- X = dif(_, _).
-
-
-
+print_relations_list:-
+	(write(cousin),nl),
+	(write(great_grandmother), nl),
+	(write(great_grandfather), nl),
+	(write(grandparent), nl),
+	(write(grandchild), nl),
+	(write(dauhgter-in-law), nl),
+	(write(son-in-law), nl),
+	(write(brother-in-law), nl),
+	(write(sister-in-law), nl),
+	(write(uncle), nl),
+	(write(aunt), nl),
+	(write(brother), nl),
+	(write(sister), nl),
+	(write(parent), nl),
+	(write(spouse), nl),
+	(write(child), nl).
